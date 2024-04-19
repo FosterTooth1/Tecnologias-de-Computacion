@@ -8,6 +8,7 @@ char *prefijo(char *cadena, int n);
 char *subcadena(char *cadena, int s, int p);
 char *invertirCadena(char *cadena);
 char *concatenar(char *cadena1, char *cadena2);
+char *subsecuencia(char *cadena1, int indices[], int can_ind);
 
 int main() {
     char *cadena = (char *)malloc(1000 * sizeof(char));
@@ -24,8 +25,8 @@ int main() {
     }
     cadena[i] = '\0'; // Agregar el terminador nulo al final de la cadena
     
-    int opcion, tamano;
-    int n, s, p;
+    int opcion, tamano, n, s, p, can_ind, aux;
+    int indices[100];
 
     do {
         printf("\nIngrese una opcion:\n");
@@ -36,7 +37,8 @@ int main() {
         printf("5. Invertir cadena\n");
         printf("6. Concatenar\n");
         printf("7. Mostrar datos de la cadena\n");
-        printf("8. Salir\n");
+        printf("8. Subsecuencia\n");
+        printf("9. Salir\n");
         printf("Seleccione una opcion: ");
         scanf("%d", &opcion);
 
@@ -56,12 +58,16 @@ int main() {
                 printf("Cadena sin el sufijo: %s\n", cadena);
                 break;
             case 3:
+                tamano = tamanocadena(cadena);
+                printf("El tamano de la cadena es: %d\n", tamano);
                 printf("Ingrese el indice para obtener el prefijo: ");
                 scanf("%d", &n);
                 cadena = prefijo(cadena, n);
                 printf("Cadena sin el prefijo: %s\n", cadena);
                 break;
             case 4:
+                tamano = tamanocadena(cadena);
+                printf("El tamano de la cadena es: %d\n", tamano);
                 printf("Ingrese la posición inicial para obtener la subcadena: ");
                 scanf("%d", &s);
                 printf("Ingrese el tamaño de la subcadena: ");
@@ -87,12 +93,23 @@ int main() {
                 printf("El tamano de la cadena es: %d\n", tamano);
                 break;
             case 8:
+                printf("Ingrese la cantidad de indices a eliminar:\n");
+                scanf("%d", &can_ind);
+                for(int i = 0; i < can_ind; i++) {
+                    printf("Ingrese el indice: ");
+                    scanf("%d", &indices[i]); 
+                }
+                cadena = subsecuencia(cadena, indices, can_ind);
+                printf("Cadena resultante: %s\n", cadena);
+
+                break;
+            case 9:
                 printf("Saliendo del programa...\n");
                 break;
             default:
                 printf("Opción no válida. Por favor, seleccione una opción válida.\n");
         }
-    } while (opcion != 8);
+    } while (opcion != 9);
 
     // Liberar la memoria asignada a las cadenas
     free(cadena);
@@ -182,4 +199,37 @@ char *concatenar(char *cadena1, char *cadena2) {
     }
     concat[tamano1 + tamano2] = '\0'; // Agregar el terminador nulo
     return concat;
+}
+
+char *subsecuencia(char *cadena, int indices[], int cantidad_indices) {
+    int tamano = tamanocadena(cadena);
+    char *resultado = (char *)malloc(tamano * sizeof(char) + 1); // Reservar memoria suficiente
+
+    if (resultado == NULL) {
+        fprintf(stderr, "Error de asignación de memoria.\n");
+        return cadena; // En caso de error de memoria, devolver la cadena original
+    }
+
+    int j = 0;
+    int es_indice_para_eliminar;
+
+    for (int i = 0; i < tamano; i++) {
+        es_indice_para_eliminar = 0;
+
+        // Verificar si el índice actual debe eliminarse
+        for (int k = 0; k < cantidad_indices; k++) {
+            if (indices[k] == i) {
+                es_indice_para_eliminar = 1;
+                break;
+            }
+        }
+
+        // Si el índice no está en la lista de eliminación, copiar el carácter a la nueva cadena
+        if (!es_indice_para_eliminar) {
+            resultado[j++] = cadena[i];
+        }
+    }
+
+    resultado[j] = '\0'; // Colocar el terminador nulo en la cadena resultante
+    return resultado;
 }
