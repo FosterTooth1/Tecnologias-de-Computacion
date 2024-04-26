@@ -9,6 +9,7 @@ char *subcadena(char *cadena, int s, int p);
 char *invertirCadena(char *cadena);
 char *concatenar(char *cadena1, char *cadena2);
 char *subsecuencia(char *cadena1, int indices[], int can_ind);
+char *copiarCadena(char *cadena);
 
 int main() {
     char *cadena = (char *)malloc(1000 * sizeof(char));
@@ -23,12 +24,14 @@ int main() {
         cadena[i] = caracter;
         i++;
     }
-    cadena[i] = '\0'; // Agregar el terminador nulo al final de la cadena
-    
+    cadena[i] = '\0'; // Agregar el terminador nulo al final de la cadena    
     int opcion, tamano, n, s, p, can_ind, aux;
     int indices[100];
 
+    
+
     do {
+        char *copia_cadena = copiarCadena(cadena);
         printf("\nIngrese una opcion:\n");
         printf("1. Leer cadena\n");
         printf("2. Sufijo\n");
@@ -50,42 +53,53 @@ int main() {
                 printf("Cadena leida: %s\n", cadena);
                 break;
             case 2:
-                tamano = tamanocadena(cadena);
+                tamano = tamanocadena(copia_cadena);
                 printf("El tamano de la cadena es: %d\n", tamano);
                 printf("Ingrese el indice para obtener el sufijo: ");
                 scanf("%d", &n);
-                cadena = sufijo(cadena, n);
-                printf("Cadena sin el sufijo: %s\n", cadena);
+                copia_cadena = sufijo(copia_cadena, n);
+                printf("Cadena sin el sufijo: %s\n", copia_cadena);
+                //free(copia_cadena);
                 break;
             case 3:
-                tamano = tamanocadena(cadena);
+                tamano = tamanocadena(copia_cadena);
                 printf("El tamano de la cadena es: %d\n", tamano);
                 printf("Ingrese el indice para obtener el prefijo: ");
                 scanf("%d", &n);
-                cadena = prefijo(cadena, n);
-                printf("Cadena sin el prefijo: %s\n", cadena);
+                copia_cadena = prefijo(copia_cadena, n);
+                printf("Cadena sin el prefijo: %s\n", copia_cadena);
+                //free(copia_cadena);
                 break;
             case 4:
-                tamano = tamanocadena(cadena);
+                tamano = tamanocadena(copia_cadena);
                 printf("El tamano de la cadena es: %d\n", tamano);
                 printf("Ingrese la posición inicial para obtener la subcadena: ");
                 scanf("%d", &s);
                 printf("Ingrese el tamaño de la subcadena: ");
                 scanf("%d", &p);
-                cadena = subcadena(cadena, s, p);
-                printf("Subcadena: %s\n", cadena);
+                copia_cadena = subcadena(copia_cadena, s, p);
+                printf("Subcadena: %s\n", copia_cadena);
+                //free(copia_cadena);
                 break;
             case 5:
-                cadena = invertirCadena(cadena);
-                printf("Cadena invertida: %s\n", cadena);
+                copia_cadena = invertirCadena(copia_cadena);
+                printf("Cadena invertida: %s\n", copia_cadena);
+                //free(copia_cadena);
                 break;
             case 6:
-                printf("Ingrese la segunda cadena: ");
-                fflush(stdin);
-                cadena2 = leerCadena(cadena2);
+                printf("Ingrese una cadena: ");
+                int i = 0;
+                char caracter;
+                while ((caracter = getchar()) != '\n') {
+                    // Almacenar el caracter en el cadena
+                    cadena2[i] = caracter;
+                    i++;
+                }
+                cadena2[i] = '\0'; // Agregar el terminador nulo al final de la cadena  
                 puts(cadena2);
-                cadena = concatenar(cadena, cadena2);
-                printf("Cadenas concatenadas: %s\n", cadena);
+                copia_cadena = concatenar(copia_cadena, cadena2);
+                printf("Cadenas concatenadas: %s\n", copia_cadena);
+                //free(cadena);
                 break;
             case 7:
                 printf("La cadena ingresada es: %s\n", cadena);
@@ -99,9 +113,9 @@ int main() {
                     printf("Ingrese el indice: ");
                     scanf("%d", &indices[i]); 
                 }
-                cadena = subsecuencia(cadena, indices, can_ind);
-                printf("Cadena resultante: %s\n", cadena);
-
+                copia_cadena = subsecuencia(copia_cadena, indices, can_ind);
+                printf("Cadena resultante: %s\n", copia_cadena);
+                //free(copia_cadena);
                 break;
             case 9:
                 printf("Saliendo del programa...\n");
@@ -132,6 +146,7 @@ char *leerCadena(char *cadena) {
     printf("Ingrese una cadena: ");
     int i = 0;
     char caracter;
+    fflush(stdin);
     while ((caracter = getchar()) != '\n') {
         // Almacenar el caracter en el cadena
         cadena[i] = caracter;
@@ -144,7 +159,7 @@ char *leerCadena(char *cadena) {
 char *sufijo(char *cadena, int n) {
     int tamano = tamanocadena(cadena);
     if (n >= tamano) {
-        printf("\nEl indice que ingreso en la cadena no es valido, intentelo de nuevo");
+        printf("\nLambda");
         return cadena;
     }
     printf("Sufijo: %s\n", cadena + n); // Imprimimos el sufijo
@@ -154,7 +169,7 @@ char *sufijo(char *cadena, int n) {
 
 char *prefijo(char *cadena, int n) {
     if (n <= 0) {
-        printf("\nEl indice que ingreso en la cadena no es valido, intentelo de nuevo");
+        printf("\nLambda");
         return cadena;
     }
     printf("Prefijo: ");
@@ -204,32 +219,30 @@ char *concatenar(char *cadena1, char *cadena2) {
 char *subsecuencia(char *cadena, int indices[], int cantidad_indices) {
     int tamano = tamanocadena(cadena);
     char *resultado = (char *)malloc(tamano * sizeof(char) + 1); // Reservar memoria suficiente
-
-    if (resultado == NULL) {
-        fprintf(stderr, "Error de asignación de memoria.\n");
-        return cadena; // En caso de error de memoria, devolver la cadena original
-    }
-
     int j = 0;
     int es_indice_para_eliminar;
 
     for (int i = 0; i < tamano; i++) {
         es_indice_para_eliminar = 0;
-
-        // Verificar si el índice actual debe eliminarse
         for (int k = 0; k < cantidad_indices; k++) {
             if (indices[k] == i) {
                 es_indice_para_eliminar = 1;
                 break;
             }
         }
-
-        // Si el índice no está en la lista de eliminación, copiar el carácter a la nueva cadena
         if (!es_indice_para_eliminar) {
             resultado[j++] = cadena[i];
         }
     }
-
     resultado[j] = '\0'; // Colocar el terminador nulo en la cadena resultante
     return resultado;
+}
+
+char *copiarCadena(char *cadena) {
+    int tamano = tamanocadena(cadena);
+    char *copia = (char *)malloc((tamano + 1) * sizeof(char)); // +1 para el caracter nulo
+    for (int i = 0; i <= tamano; i++) { // Incluye el caracter nulo en la copia
+        copia[i] = cadena[i];
+    }
+    return copia;
 }
