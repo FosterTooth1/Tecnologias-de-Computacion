@@ -48,6 +48,7 @@ int main() {
         printf("Seleccione una opcion: ");
         fflush(stdin);
         scanf("%d", &opcion);
+        fflush(stdin);
 
         switch (opcion) {
             case 1:
@@ -76,6 +77,7 @@ int main() {
                 puts("\n\nEl lenguaje union es:");
                 lenguaje_union(l1,l2,l3);
                 MostrarLista(l3,&error,dato);
+                printf("%d indice", l3->cursor);
                 
                 break;
             case 2:
@@ -192,7 +194,7 @@ int main() {
                     }
                 }
 
-                for(int i = 1; i < cantidadDatos; i++) {
+                for(int i = 1; i < potencia; i++) {
                     puts("Paso1");
                     lenguaje_potencia(l1, l3);
                     puts("Paso2");
