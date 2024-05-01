@@ -27,6 +27,7 @@ bool isEmpty(Lista p, int* error);
 void destruirLista(Lista* p, int* error);
 int tamanocadena(char *cadena);
 void invertirCadena(char *cadena);
+void clonarLista(Lista *origen, Lista *destino, int *error);
 
 int main() {
     int opcion, error, cantidadDatos, potencia;
@@ -57,8 +58,7 @@ int main() {
                 scanf("%d",&cantidadDatos);
                 for(int i=0; i<cantidadDatos; i++){
                     puts("Ingresa un valor:");
-                    fflush(stdin);
-                    gets(Dato);
+                    scanf("%s", Dato);
                     strcpy(dato.Valores,Dato);
                     enListarUltimo(l1,&error,dato);
                 }
@@ -69,7 +69,7 @@ int main() {
                 for(int i=0; i<cantidadDatos; i++){
                     puts("Ingresa un valor:");
                     fflush(stdin);
-                    gets(Dato);
+                    scanf("%s", Dato);
                     strcpy(dato.Valores,Dato);
                     enListarUltimo(l2,&error,dato);
                 }
@@ -77,7 +77,7 @@ int main() {
                 puts("\n\nEl lenguaje union es:");
                 lenguaje_union(l1,l2,l3);
                 MostrarLista(l3,&error,dato);
-                printf("%d indice", l3->cursor);
+
                 
                 break;
             case 2:
@@ -87,7 +87,7 @@ int main() {
                 for(int i=0; i<cantidadDatos; i++){
                     puts("Ingresa un valor:");
                     fflush(stdin);
-                    gets(Dato);
+                    scanf("%s", Dato);
                     strcpy(dato.Valores,Dato);
                     enListarUltimo(l1,&error,dato);
                 }
@@ -98,7 +98,7 @@ int main() {
                 for(int i=0; i<cantidadDatos; i++){
                     puts("Ingresa un valor:");
                     fflush(stdin);
-                    gets(Dato);
+                    scanf("%s", Dato);
                     strcpy(dato.Valores,Dato);
                     enListarUltimo(l2,&error,dato);
                 }
@@ -115,7 +115,7 @@ int main() {
                 for(int i=0; i<cantidadDatos; i++){
                     puts("Ingresa un valor:");
                     fflush(stdin);
-                    gets(Dato);
+                    scanf("%s", Dato);
                     strcpy(dato.Valores,Dato);
                     enListarUltimo(l1,&error,dato);
                 }
@@ -126,7 +126,7 @@ int main() {
                 for(int i=0; i<cantidadDatos; i++){
                     puts("Ingresa un valor:");
                     fflush(stdin);
-                    gets(Dato);
+                    scanf("%s", Dato);
                     strcpy(dato.Valores,Dato);
                     enListarUltimo(l2,&error,dato);
                 }
@@ -143,7 +143,7 @@ int main() {
                 for(int i=0; i<cantidadDatos; i++){
                     puts("Ingresa un valor:");
                     fflush(stdin);
-                    gets(Dato);
+                    scanf("%s", Dato);
                     strcpy(dato.Valores,Dato);
                     enListarUltimo(l1,&error,dato);
                 }
@@ -154,7 +154,7 @@ int main() {
                 for(int i=0; i<cantidadDatos; i++){
                     puts("Ingresa un valor:");
                     fflush(stdin);
-                    gets(Dato);
+                    scanf("%s", Dato);
                     strcpy(dato.Valores,Dato);
                     enListarUltimo(l2,&error,dato);
                 }
@@ -175,7 +175,7 @@ int main() {
                     for(int i=0; i<cantidadDatos; i++){
                         puts("Ingresa un valor:");
                         fflush(stdin);
-                        gets(Dato);
+                        scanf("%s", Dato);
                         invertirCadena(Dato);
                         strcpy(dato.Valores,Dato);
                         enListarUltimo(l1,&error,dato);
@@ -188,25 +188,27 @@ int main() {
                     for(int i=0; i<cantidadDatos; i++){
                         puts("Ingresa un valor:");
                         fflush(stdin);
-                        gets(Dato);
+                        scanf("%s", Dato);
                         strcpy(dato.Valores,Dato);
                         enListarUltimo(l1,&error,dato);
                     }
                 }
 
+                clonarLista(l1,l2, &error);
+
                 for(int i = 1; i < potencia; i++) {
                     puts("Paso1");
-                    lenguaje_potencia(l1, l3);
+                    lenguaje_concatenacion(l2,l1, l3);
                     puts("Paso2");
-                    vaciarLista(l1, &error);
+                    vaciarLista(l2, &error);
                     puts("Paso3");
-                    clonarLista(l3, l1, &error);
+                    clonarLista(l3, l2, &error);
                     puts("Paso4");
                     vaciarLista(l3, &error);
                 }
 
                 puts("\n\nEl lenguaje potencia es:");
-                MostrarLista(l1,&error,dato);
+                MostrarLista(l2,&error,dato);
 
                 break;
             case 6:
@@ -216,7 +218,7 @@ int main() {
                 for(int i=0; i<cantidadDatos; i++){
                     puts("Ingresa un valor:");
                     fflush(stdin);
-                    gets(Dato);
+                    scanf("%s", Dato);
                     invertirCadena(Dato);
                     strcpy(dato.Valores,Dato);
                     enListarUltimo(l3,&error,dato);
@@ -281,24 +283,53 @@ Lista* crearLista(int* error){
     return ListaAsignacion;
 }
 
+bool BuscarElemento(Lista *p, int* error, struct Nodo *dato){
+    struct Nodo* Aux= p->Cabecera;
+    int encontrados = 0; 
+    if(Aux==NULL){
+        //perror("No hay Datos\n");
+        //*error=-3;
+    }else{
+        while(Aux){
+            if(strcmp(Aux->Valores, dato->Valores) == 0){
+                encontrados++;
+                break;
+            }
+            Aux=Aux->NodoInferior;
+        }
+    }
+    if(encontrados==0){
+        return false;
+    } else {
+        return true;
+    }
+}
+
 void enListarUltimo(Lista *p, int* error, struct Nodo dato){
+    // Verificar si el elemento ya existe en el lenguaje
+    if (BuscarElemento(p, error, &dato)) {
+        //printf("El elemento %s ya existe en la lista. No se agregará nuevamente.\n", dato.Valores);
+        return;
+    }
+
     struct Nodo* nodoUsuario=(struct Nodo*) malloc(sizeof(struct Nodo));
     if(nodoUsuario==NULL){
         perror("No hay memoria para almacenar tu información");
         *error=-1;
-    }else{
-        strcpy(nodoUsuario->Valores,dato.Valores);
-        nodoUsuario->NodoInferior=NULL;
+    } else {
+        strcpy(nodoUsuario->Valores, dato.Valores);
+        nodoUsuario->NodoInferior = NULL;
+
+        if(isEmpty(*p,error)){
+            p->Cabecera = nodoUsuario;
+            p->Ultimo = nodoUsuario;
+        } else {
+            p->Ultimo->NodoInferior = nodoUsuario;
+            p->Ultimo = nodoUsuario;
+        }
+        p->cursor++;
+        *error=0;
     }
-    if(isEmpty(*p,error)){
-        p->Cabecera=nodoUsuario;
-        p->Ultimo=nodoUsuario;
-    }else{
-        p->Ultimo->NodoInferior=nodoUsuario;
-        p->Ultimo=nodoUsuario;
-    }
-    p->cursor++;
-    *error=0;
 }
 
 void DesenListarCabecera(Lista *p, int* error,struct Nodo *datoExtraido){
@@ -317,28 +348,6 @@ void DesenListarCabecera(Lista *p, int* error,struct Nodo *datoExtraido){
         strcpy(datoExtraido->Valores,aux->Valores);
     }else{
     *error=-3;
-    }
-}
-
-bool BuscarElemento(Lista *p, int* error, struct Nodo *dato){
-    struct Nodo* Aux= p->Cabecera;
-    int encontrados = 0; 
-    if(Aux==NULL){
-        perror("No hay Datos\n");
-        *error=-3;
-    }else{
-        while(Aux){
-            if(strcmp(Aux->Valores, dato->Valores) == 0){
-                encontrados++;
-                break;
-            }
-            Aux=Aux->NodoInferior;
-        }
-    }
-    if(encontrados==0){
-        return false;
-    } else {
-        return true;
     }
 }
 
@@ -447,12 +456,13 @@ void lenguaje_concatenacion(Lista *l1,Lista *l2,Lista *l3){
         Aux1 = Aux1->NodoInferior;
     }
 }
+
 void lenguaje_potencia(Lista *l1,Lista *l3){
     int error;
     //struct Nodo datoExtraido;
     struct Nodo* Aux1 = l1->Cabecera;
     struct Nodo* Aux2 = l1->Cabecera;
-    struct Nodo* cadena;
+    struct Nodo* cadena = (struct Nodo*)malloc(sizeof(struct Nodo)); // Asignación de memoria para la cadena
 
     while (Aux1 != NULL) {
         while (Aux2 !=NULL){
@@ -463,6 +473,7 @@ void lenguaje_potencia(Lista *l1,Lista *l3){
         Aux2 = l1->Cabecera;    
         Aux1 = Aux1->NodoInferior;
     }
+    free(cadena);
 }
 
 void clonarLista(Lista *origen, Lista *destino, int *error) {
