@@ -197,13 +197,9 @@ int main() {
                 clonarLista(l1,l2, &error);
 
                 for(int i = 1; i < potencia; i++) {
-                    puts("Paso1");
                     lenguaje_concatenacion(l2,l1, l3);
-                    puts("Paso2");
                     vaciarLista(l2, &error);
-                    puts("Paso3");
                     clonarLista(l3, l2, &error);
-                    puts("Paso4");
                     vaciarLista(l3, &error);
                 }
 
@@ -444,7 +440,7 @@ void lenguaje_concatenacion(Lista *l1,Lista *l2,Lista *l3){
     //struct Nodo datoExtraido;
     struct Nodo* Aux1 = l1->Cabecera;
     struct Nodo* Aux2 = l2->Cabecera;
-    struct Nodo* cadena;
+    struct Nodo* cadena = (struct Nodo*) malloc(sizeof(struct Nodo));
 
     while (Aux1 != NULL) {
         while (Aux2 !=NULL){
@@ -455,25 +451,6 @@ void lenguaje_concatenacion(Lista *l1,Lista *l2,Lista *l3){
         Aux2 = l2->Cabecera;    
         Aux1 = Aux1->NodoInferior;
     }
-}
-
-void lenguaje_potencia(Lista *l1,Lista *l3){
-    int error;
-    //struct Nodo datoExtraido;
-    struct Nodo* Aux1 = l1->Cabecera;
-    struct Nodo* Aux2 = l1->Cabecera;
-    struct Nodo* cadena = (struct Nodo*)malloc(sizeof(struct Nodo)); // Asignación de memoria para la cadena
-
-    while (Aux1 != NULL) {
-        while (Aux2 !=NULL){
-            strcat(strcpy(cadena->Valores, Aux1->Valores), Aux2->Valores);
-            enListarUltimo(l3, &error, *cadena);
-            Aux2 = Aux2->NodoInferior;
-        }
-        Aux2 = l1->Cabecera;    
-        Aux1 = Aux1->NodoInferior;
-    }
-    free(cadena);
 }
 
 void clonarLista(Lista *origen, Lista *destino, int *error) {
