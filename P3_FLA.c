@@ -11,14 +11,12 @@ struct Nodo{
 typedef struct{
     struct Nodo* Cabecera;
     struct Nodo* Ultimo;
-    int cursor;
 }Lista;
 
 // Prototipos de funciones
 Lista* crearLista(int* error);
-void crear_nodos(Lista *p);
-int procesarArray(int* array, int tam, Lista *p);
-int obtenerTamanoArray(int* array);
+void tabla_funcion(Lista *p);
+int verificar_pos(int* array, int tam, Lista *p);
 
 // Función para crear una lista
 Lista* crearLista(int* error){
@@ -30,20 +28,19 @@ Lista* crearLista(int* error){
     }
     ListaAsignacion->Cabecera=NULL;
     ListaAsignacion->Ultimo=NULL;
-    ListaAsignacion->cursor=0;
     *error=0;
     return ListaAsignacion;
 }
 
-// Función para crear los nodos según la descripción dada
-void crear_nodos(Lista *p) {
+// Tabla de Transicion
+void tabla_funcion(Lista *p) {
     // Creación de los nodos
     struct Nodo* q0 = (struct Nodo*)malloc(sizeof(struct Nodo));
     struct Nodo* q1 = (struct Nodo*)malloc(sizeof(struct Nodo));
     struct Nodo* q2 = (struct Nodo*)malloc(sizeof(struct Nodo));
     struct Nodo* q3 = (struct Nodo*)malloc(sizeof(struct Nodo));
     
-    // Establecimiento de las conexiones entre los nodos según la descripción dada
+    // Descripcion tabla de transicion
     q0->Nodo_0 = q2;
     q0->Nodo_1 = q1;
     
@@ -56,13 +53,13 @@ void crear_nodos(Lista *p) {
     q3->Nodo_0 = q1;
     q3->Nodo_1 = q2;
     
-    // Asignación de los nodos a la lista
+    // Definir inicio y final
     p->Cabecera = q0;
-    p->Ultimo = q3;
+    p->Ultimo = q0;
 }
 
-// Función para procesar el array de números binarios
-int procesarArray(int* array, int tam, Lista *p) {
+// Veriricar posicion
+int verificar_pos(int* array, int tam, Lista *p) {
     struct Nodo* nodoActual = p->Cabecera; // Comenzamos en el nodo q0
     
     for (int i = 0; i < tam; i++) {
@@ -76,33 +73,23 @@ int procesarArray(int* array, int tam, Lista *p) {
             if (nodoActual->Nodo_0 != NULL) {
                 nodoActual = nodoActual->Nodo_0;
             } else {
-                return 0; // Si el nodo siguiente no existe, devuelve falso
+                return 0;
             }
         } else {
             return 0; // Si el número no es ni 0 ni 1, devuelve falso
         }
     }
     
-    // Devuelve verdadero si el nodo actual es q0, falso en caso contrario
-    return (nodoActual == p->Cabecera);
-}
-
-// Función para obtener el tamaño de un array dinámico
-int obtenerTamanoArray(int* array) {
-    int tamano = 0;
-    while (array[tamano] != -1) {
-        tamano++;
-    }
-    return tamano;
+    // Devuelve verdadero si el nodo actual es el final
+    return (nodoActual == p->Ultimo);
 }
 
 int main() {
     int error;
-    int* array = (int*)malloc(sizeof(int)); // Inicializamos el array dinámico con un tamaño inicial
+    int* array = (int*)malloc(sizeof(int));
     int numero;
     int contador = 0;
     
-    // Solicitamos al usuario ingresar números binarios hasta que ingrese -1
     printf("Ingrese numeros binarios (0 o 1). Ingrese -1 para terminar.\n");
     while (1) {
         printf("Ingrese un numero: ");
@@ -110,28 +97,33 @@ int main() {
         if (numero == -1) {
             break;
         }
-        array = (int*)realloc(array, (contador + 1) * sizeof(int)); // Ajustamos el tamaño del array
+        array = (int*)realloc(array, (contador + 1) * sizeof(int));
         array[contador] = numero;
         contador++;
     }
-    array = (int*)realloc(array, (contador + 1) * sizeof(int)); // Añadimos un elemento más para el -1
-    array[contador] = -1; // Agregamos -1 al final del array para marcar el final
+
+    // Añadimos un elemento más para el -1
+    array = (int*)realloc(array, (contador + 1) * sizeof(int)); 
+    array[contador] = -1;
     
     Lista *p=crearLista(&error);
     
-    crear_nodos(p); // Creamos los nodos según las reglas dadas
-    
-    // Obtenemos el tamaño del array dinámico
-    int tamanoArray = obtenerTamanoArray(array);
-    
-    // Procesamos el array y mostramos el resultado
-    if (procesarArray(array, tamanoArray, p)) {
-        printf("El arreglo pertenece al lenguaje.\n");
-    } else {
-        printf("El arreglo no pertenece al lenguaje.\n");
+    // Creamos la tabla de nodos
+    tabla_funcion(p);
+
+    if(contador==0 && p->Cabecera==p->Ultimo){
+        puts("Epsilon si pertenece al lenguaje");
+    }else{
+
+        //Verifica si el array pertenece al lenguaje
+        if (verificar_pos(array, contador, p)) {
+            printf("El arreglo pertenece al lenguaje.\n");
+        } else {
+            printf("El arreglo no pertenece al lenguaje.\n");
+        }
     }
     
-    free(array); // Liberamos la memoria asignada para el array
+    free(array);
     
     return 0;
 }
