@@ -3,7 +3,6 @@
 
 // Definición de la estructura del nodo
 struct Nodo{
-    int valor0; // Por completar con el tipo de datos adecuado
     struct Nodo* Nodo_0;
     struct Nodo* Nodo_1;
 };
@@ -43,12 +42,6 @@ void crear_nodos(Lista *p) {
     struct Nodo* q1 = (struct Nodo*)malloc(sizeof(struct Nodo));
     struct Nodo* q2 = (struct Nodo*)malloc(sizeof(struct Nodo));
     struct Nodo* q3 = (struct Nodo*)malloc(sizeof(struct Nodo));
-    
-    // Asignación de valores, por ejemplo, valor0 puede ser un entero
-    q0->valor0 = 0; // Por completar con el valor adecuado
-    q1->valor0 = 1; // Por completar con el valor adecuado
-    q2->valor0 = 2; // Por completar con el valor adecuado
-    q3->valor0 = 3; // Por completar con el valor adecuado
     
     // Establecimiento de las conexiones entre los nodos según la descripción dada
     q0->Nodo_0 = q2;
@@ -133,9 +126,9 @@ int main() {
     
     // Procesamos el array y mostramos el resultado
     if (procesarArray(array, tamanoArray, p)) {
-        printf("La función devuelve verdadero.\n");
+        printf("El arreglo pertenece al lenguaje.\n");
     } else {
-        printf("La función devuelve falso.\n");
+        printf("El arreglo no pertenece al lenguaje.\n");
     }
     
     free(array); // Liberamos la memoria asignada para el array
