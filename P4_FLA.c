@@ -135,7 +135,7 @@ int main() {
     while (1) {
         printf("Ingrese un letra: ");
         fflush(stdin);
-        scanf("%c", &letra);
+        scanf(" %c", &letra);
         if (letra == 'c') {
             break;
         }
