@@ -39,10 +39,13 @@ char **procesarLinea(char *buffer, int *token_count) {
     return tokens;
 }
 
-// Función para generar todas las combinaciones de los elementos de un array
 void generarCombinaciones(char **array, int n, char ***combinaciones, int *comb_count) {
     int total_combinations = (1 << n) - 1; // 2^n - 1 combinaciones
     *combinaciones = (char **)malloc(sizeof(char *) * total_combinations);
+    if (!(*combinaciones)) {
+        perror("Error en la asignación de memoria");
+        exit(EXIT_FAILURE);
+    }
     *comb_count = 0;
 
     for (int i = 1; i <= total_combinations; i++) {
@@ -54,6 +57,10 @@ void generarCombinaciones(char **array, int n, char ***combinaciones, int *comb_
         }
 
         (*combinaciones)[*comb_count] = (char *)malloc(len);
+        if (!(*combinaciones)[*comb_count]) {
+            perror("Error en la asignación de memoria");
+            exit(EXIT_FAILURE);
+        }
         (*combinaciones)[*comb_count][0] = '\0';
 
         for (int j = 0; j < n; j++) {
@@ -89,20 +96,30 @@ int encontrarIndiceColumna(char **cabecera, int col_count, char *columna) {
     return -1; // No encontrado
 }
 
-// Función para concatenar valores únicos
 char *concatenarUnicos(char *destino, const char *fuente) {
     if (strlen(destino) == 0) {
         return strdup(fuente);
     }
 
     char *resultado = (char *)malloc(strlen(destino) + strlen(fuente) + 2); // +2 para la coma y el terminador nulo
+    if (!resultado) {
+        perror("Error en la asignación de memoria");
+        exit(EXIT_FAILURE);
+    }
     strcpy(resultado, destino);
 
     char *token_fuente = strdup(fuente);
+    if (!token_fuente) {
+        perror("Error en la asignación de memoria");
+        exit(EXIT_FAILURE);
+    }
+
     char *token = strtok(token_fuente, ",");
     while (token != NULL) {
         if (strstr(destino, token) == NULL) {
-            strcat(resultado, ",");
+            if (resultado[0] != '\0') {
+                strcat(resultado, ",");
+            }
             strcat(resultado, token);
         }
         token = strtok(NULL, ",");
@@ -201,7 +218,7 @@ void imprimirMatrizConMarcadores(FILE *output, char ***matriz, int inicio, int f
 
 int main() {
     FILE *file;
-    char *filename = "nfa.txt";
+    char *filename = "ejemplo.txt";
     char buffer[1024];
     char ***lineas = (char ***)malloc(sizeof(char **) * 4);
     int token_counts[4] = {0};
@@ -276,26 +293,28 @@ int main() {
     }
 
     // Rellenar los espacios de las combinaciones con la lógica especificada
-    for (int i = 1; i < filas; i++) {
-        for (int j = 1; j < columnas; j++) {
-            if (matriz[i][j] == NULL) {
-                matriz[i][j] = strdup("");
-            }
-            char *comb = strdup(matriz[i][0]);
-            char *token = strtok(comb, ",");
-            while (token != NULL) {
-                int fila_token = encontrarIndiceCombinacion(combinaciones, comb_count, token);
-                fila_token++; // Ajustar para la cabecera
-                if (fila_token != i && matriz[fila_token][j] != NULL && strlen(matriz[fila_token][j]) > 0) {
-                    char *nuevo_valor = concatenarUnicos(matriz[i][j], matriz[fila_token][j]);
-                    free(matriz[i][j]);
-                    matriz[i][j] = nuevo_valor;
-                }
-                token = strtok(NULL, ",");
-            }
-            free(comb);
+for (int i = 1; i < filas; i++) {
+    for (int j = 1; j < columnas; j++) {
+        if (matriz[i][j] == NULL) {
+            matriz[i][j] = strdup("");
         }
+        char *comb = strdup(matriz[i][0]);
+        char *token = strtok(comb, ",");
+        while (token != NULL) {
+            int fila_token = encontrarIndiceCombinacion(combinaciones, comb_count, token);
+            fila_token++; // Ajustar para la cabecera
+            if (fila_token != i && matriz[fila_token][j] != NULL && strlen(matriz[fila_token][j]) > 0) {
+                char *nuevo_valor = concatenarUnicos(matriz[i][j], matriz[fila_token][j]);
+                free(matriz[i][j]);
+                matriz[i][j] = nuevo_valor;
+            }
+            token = strtok(NULL, ",");
+        }
+        free(comb);
     }
+}
+
+
 
     fclose(file);
 
