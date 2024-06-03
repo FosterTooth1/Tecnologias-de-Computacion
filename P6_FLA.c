@@ -117,6 +117,39 @@ void generarCombinaciones(Lista* lista, char** elementos, int numElementos, int 
     }
 }
 
+// Función para verificar si una cadena pertenece al autómata
+int verificarCadena(Lista* lista, char* cadena) {
+    struct Nodo* nodoActual = NULL;
+    for (int i = 0; i < lista->NumNodos; i++) {
+        if (lista->Cabecera[i].esInicio) {
+            nodoActual = &lista->Cabecera[i];
+            break;
+        }
+    }
+    
+    if (nodoActual == NULL) {
+        printf("No se encontró el nodo inicial.\n");
+        return 0;
+    }
+    
+    for (int i = 0; i < strlen(cadena); i++) {
+        int entradaIdx = cadena[i] - '0';
+        if (entradaIdx < 0 || entradaIdx >= nodoActual->numEntradas || nodoActual->CantidadDeCaminos[entradaIdx] == 0) {
+            printf("Cadena no válida.\n");
+            return 0;
+        }
+        nodoActual = NULL;
+        for (int j = 0; j < lista->NumNodos; j++) {
+            if (strcmp(lista->Cabecera[j].Nombre, nodoActual->Caminos[entradaIdx][0]) == 0) {
+                nodoActual = &lista->Cabecera[j];
+                break;
+            }
+        }
+    }
+    
+    return nodoActual != NULL && nodoActual->esFinal;
+}
+
 // Función principal para leer el archivo y crear el autómata
 void leerArchivoYCrearAutomata(char* nombreArchivo, Lista* lista) {
     FILE* archivo = fopen(nombreArchivo, "r");
@@ -218,5 +251,16 @@ int main() {
     Lista lista;
     leerArchivoYCrearAutomata("ejemplo.txt", &lista);
     imprimirLista(&lista);
+
+    char cadena[100];
+    printf("Ingrese una cadena para verificar: ");
+    scanf("%s", cadena);
+
+    if (verificarCadena(&lista, cadena)) {
+        printf("La cadena pertenece al autómata.\n");
+    } else {
+        printf("La cadena no pertenece al autómata.\n");
+    }
+
     return 0;
 }

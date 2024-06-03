@@ -2,377 +2,221 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Función para contar el número de caracteres en una cadena hasta un delimitador o el final
-int contarCaracteresHasta(const char *str, char delimitador) {
+// Estructura del nodo
+struct Nodo {
+    char* Nombre;
+    char*** Caminos; // Array de arrays de nombres de nodos destino
+    int esFinal;
+    int esInicio; // Nuevo campo para indicar si es un nodo inicial
+    int* CantidadDeCaminos; // Array que almacena la cantidad de caminos para cada entrada
+    int numEntradas; // Número de posibles caminos (entradas)
+};
+
+// Estructura de la lista
+typedef struct {
+    struct Nodo* Cabecera;
+    int NumNodos;
+} Lista;
+
+// Función para crear un nuevo nodo
+struct Nodo* crearNodo(char* nombre, int numEntradas) {
+    struct Nodo* nuevoNodo = (struct Nodo*)malloc(sizeof(struct Nodo));
+    nuevoNodo->Nombre = strdup(nombre);
+    nuevoNodo->Caminos = (char***)malloc(numEntradas * sizeof(char**));
+    nuevoNodo->CantidadDeCaminos = (int*)calloc(numEntradas, sizeof(int));
+    nuevoNodo->esFinal = 0;
+    nuevoNodo->esInicio = 0;
+    nuevoNodo->numEntradas = numEntradas;
+    for (int i = 0; i < numEntradas; i++) {
+        nuevoNodo->Caminos[i] = NULL;
+    }
+    return nuevoNodo;
+}
+
+// Función para agregar un camino a un nodo, evitando duplicados
+void agregarCamino(struct Nodo* nodo, int entradaIdx, char* destino) {
+    // Verificar si el destino ya está en el camino
+    for (int i = 0; i < nodo->CantidadDeCaminos[entradaIdx]; i++) {
+        if (strcmp(nodo->Caminos[entradaIdx][i], destino) == 0) {
+            return; // El destino ya está en el camino, no agregar
+        }
+    }
+    nodo->Caminos[entradaIdx] = (char**)realloc(nodo->Caminos[entradaIdx], (nodo->CantidadDeCaminos[entradaIdx] + 1) * sizeof(char*));
+    nodo->Caminos[entradaIdx][nodo->CantidadDeCaminos[entradaIdx]] = strdup(destino);
+    nodo->CantidadDeCaminos[entradaIdx]++;
+}
+
+// Función para imprimir la lista
+void imprimirLista(Lista* lista) {
+    printf("Cantidad de nodos en la lista: %d\n", lista->NumNodos);
+    for (int i = 0; i < lista->NumNodos; i++) {
+        struct Nodo* nodo = &lista->Cabecera[i];
+        printf("Nodo %s (esFinal: %d, esInicio: %d):\n", nodo->Nombre, nodo->esFinal, nodo->esInicio);
+        for (int j = 0; j < nodo->numEntradas; j++) {
+            if (nodo->CantidadDeCaminos[j] > 0) {
+                printf("  Camino %d:", j);
+                for (int k = 0; k < nodo->CantidadDeCaminos[j]; k++) {
+                    printf(" %s", nodo->Caminos[j][k]);
+                }
+                printf("\n\n");
+            }
+        }
+    }
+}
+
+// Función para contar el número de elementos separados por comas en una línea
+int contarElementos(char* linea) {
     int count = 0;
-    while (str[count] != delimitador && str[count] != '\0' && str[count] != '\n') {
+    char* token = strtok(linea, ",");
+    while (token) {
         count++;
+        token = strtok(NULL, ",");
     }
     return count;
 }
 
-// Función para procesar una línea y dividirla en tokens
-char **procesarLinea(char *buffer, int *token_count) {
-    char **tokens = NULL;
-    *token_count = 0;
-    char *ptr = buffer;
-
-    while (*ptr != '\0' && *ptr != '\n') {
-        int len = contarCaracteresHasta(ptr, ',');
-
-        // Asignar memoria para el nuevo token
-        tokens = (char **)realloc(tokens, sizeof(char *) * (*token_count + 1));
-        tokens[*token_count] = (char *)malloc(sizeof(char) * (len + 1));
-
-        // Copiar el token al array
-        for (int i = 0; i < len; i++) {
-            tokens[*token_count][i] = ptr[i];
-        }
-        tokens[*token_count][len] = '\0'; // Añadir el carácter nulo al final del token
-
-        (*token_count)++;
-        ptr += len;
-        if (*ptr == ',') {
-            ptr++; // Saltar la coma
-        }
-    }
-    return tokens;
-}
-
-void generarCombinaciones(char **array, int n, char ***combinaciones, int *comb_count) {
-    int total_combinations = (1 << n) - 1; // 2^n - 1 combinaciones
-    *combinaciones = (char **)malloc(sizeof(char *) * total_combinations);
-    if (!(*combinaciones)) {
-        perror("Error en la asignación de memoria");
-        exit(EXIT_FAILURE);
-    }
-    *comb_count = 0;
-
-    for (int i = 1; i <= total_combinations; i++) {
-        int len = 0;
-        for (int j = 0; j < n; j++) {
-            if (i & (1 << j)) {
-                len += contarCaracteresHasta(array[j], '\0') + 1; // +1 para la coma
-            }
-        }
-
-        (*combinaciones)[*comb_count] = (char *)malloc(len);
-        if (!(*combinaciones)[*comb_count]) {
-            perror("Error en la asignación de memoria");
-            exit(EXIT_FAILURE);
-        }
-        (*combinaciones)[*comb_count][0] = '\0';
-
-        for (int j = 0; j < n; j++) {
-            if (i & (1 << j)) {
-                strcat((*combinaciones)[*comb_count], array[j]);
-                strcat((*combinaciones)[*comb_count], ",");
-            }
-        }
-
-        // Remover la última coma
-        (*combinaciones)[*comb_count][len - 1] = '\0';
-        (*comb_count)++;
-    }
-}
-
-// Función para encontrar el índice de una combinación en el array de combinaciones
-int encontrarIndiceCombinacion(char **combinaciones, int comb_count, char *combinacion) {
-    for (int i = 0; i < comb_count; i++) {
-        if (strcmp(combinaciones[i], combinacion) == 0) {
-            return i;
-        }
-    }
-    return -1; // No encontrado
-}
-
-// Función para encontrar el índice de una columna dada en la cabecera
-int encontrarIndiceColumna(char **cabecera, int col_count, char *columna) {
-    for (int i = 0; i < col_count; i++) {
-        if (strcmp(cabecera[i], columna) == 0) {
-            return i;
-        }
-    }
-    return -1; // No encontrado
-}
-
-char *concatenarUnicos(char *destino, const char *fuente) {
-    if (strlen(destino) == 0) {
-        return strdup(fuente);
-    }
-
-    char *resultado = (char *)malloc(strlen(destino) + strlen(fuente) + 2); // +2 para la coma y el terminador nulo
-    if (!resultado) {
-        perror("Error en la asignación de memoria");
-        exit(EXIT_FAILURE);
-    }
-    strcpy(resultado, destino);
-
-    char *token_fuente = strdup(fuente);
-    if (!token_fuente) {
-        perror("Error en la asignación de memoria");
-        exit(EXIT_FAILURE);
-    }
-
-    char *token = strtok(token_fuente, ",");
-    while (token != NULL) {
-        if (strstr(destino, token) == NULL) {
-            if (resultado[0] != '\0') {
-                strcat(resultado, ",");
-            }
-            strcat(resultado, token);
-        }
-        token = strtok(NULL, ",");
-    }
-    free(token_fuente);
-
-    return resultado;
-}
-
-// Función para contar los tokens en una cadena separada por comas
-int contarTokens(const char *str) {
-    int count = 0;
-    const char *ptr = str;
-    while (*ptr != '\0') {
-        if (*ptr == ',') {
-            count++;
-        }
-        ptr++;
-    }
-    return count + 1; // El número de tokens es el número de comas + 1
-}
-
-// Función para verificar si un token está en un array de tokens
-int tokenEnArray(char *token, char **array, int array_size) {
-    for (int i = 0; i < array_size; i++) {
-        if (strcmp(token, array[i]) == 0) {
+// Función para verificar si un nodo combinado ya existe en la lista
+int nodoExiste(Lista* lista, char* nombre) {
+    for (int i = 0; i < lista->NumNodos; i++) {
+        if (strcmp(lista->Cabecera[i].Nombre, nombre) == 0) {
             return 1;
         }
     }
     return 0;
 }
 
-// Función para imprimir la matriz con los marcadores especificados
-void imprimirMatriz(FILE *output, char ***matriz, int filas, int columnas, char *token_unico, char **array_tokens, int array_size) {
-    for (int i = 0; i < filas; i++) {
-        for (int j = 0; j < columnas; j++) {
-            if (matriz[i][j] != NULL) {
-                fprintf(output, "%-15s", matriz[i][j]);
-            } else {
-                fprintf(output, "%-15s", "");
-            }
-        }
-
-        // Añadir marcadores
-        if (i > 0 && strcmp(matriz[i][0], token_unico) == 0) {
-            fprintf(output, "  *");
-        } else if (i > 0) {
-            char *comb = strdup(matriz[i][0]);
-            char *token = strtok(comb, ",");
-            int found = 0;
-            while (token != NULL) {
-                if (tokenEnArray(token, array_tokens, array_size)) {
-                    fprintf(output, "  <-");
-                    found = 1;
-                    break;
+// Función para generar combinaciones de nodos
+void generarCombinaciones(Lista* lista, char** elementos, int numElementos, int inicio, char* combinacion, int profundidad, int numEntradas) {
+    if (profundidad > 0 && !nodoExiste(lista, combinacion)) {
+        struct Nodo* nuevoNodo = crearNodo(combinacion, numEntradas);
+        for (int i = 0; i < lista->NumNodos; i++) {
+            if (strstr(combinacion, lista->Cabecera[i].Nombre) != NULL) {
+                for (int entrada = 0; entrada < lista->Cabecera[i].numEntradas; entrada++) {
+                    for (int k = 0; k < lista->Cabecera[i].CantidadDeCaminos[entrada]; k++) {
+                        agregarCamino(nuevoNodo, entrada, lista->Cabecera[i].Caminos[entrada][k]);
+                    }
                 }
-                token = strtok(NULL, ",");
+                if (lista->Cabecera[i].esFinal) {
+                    nuevoNodo->esFinal = 1;
+                }
             }
-            free(comb);
         }
-
-        fprintf(output, "\n");
+        lista->Cabecera = (struct Nodo*)realloc(lista->Cabecera, (lista->NumNodos + 1) * sizeof(struct Nodo));
+        lista->Cabecera[lista->NumNodos] = *nuevoNodo;
+        lista->NumNodos++;
+    }
+    for (int i = inicio; i < numElementos; i++) {
+        if (strcmp(elementos[i], "Vacio\n") != 0) { // Ignorar "Vacio"
+            int newLen = strlen(combinacion) + strlen(elementos[i]) + 1;
+            char* nuevaCombinacion = (char*)malloc(newLen * sizeof(char));
+            snprintf(nuevaCombinacion, newLen, "%s%s",
+            combinacion, elementos[i]);
+            generarCombinaciones(lista, elementos, numElementos, i + 1, nuevaCombinacion, profundidad + 1, numEntradas);
+            free(nuevaCombinacion);
+        }
     }
 }
 
-// Función para imprimir una matriz con marcadores
-void imprimirMatrizConMarcadores(FILE *output, char ***matriz, int inicio, int fin, int columnas, char *token_unico, char **array_tokens, int array_size) {
-    for (int i = inicio; i < fin; i++) {
-        for (int j = 0; j < columnas; j++) {
-            if (matriz[i][j] != NULL) {
-                fprintf(output, "%-15s", matriz[i][j]);
-            } else {
-                fprintf(output, "%-15s", "");
-            }
-        }
-
-        // Añadir marcadores
-        if (strcmp(matriz[i][0], token_unico) == 0) {
-            fprintf(output, "  *");
-        } else {
-            char *comb = strdup(matriz[i][0]);
-            char *token = strtok(comb, ",");
-            while (token != NULL) {
-                if (tokenEnArray(token, array_tokens, array_size)) {
-                    fprintf(output, "  <-");
-                    break;
-                }
-                token = strtok(NULL, ",");
-            }
-            free(comb);
-        }
-
-        fprintf(output, "\n");
+// Función principal para leer el archivo y crear el autómata
+void leerArchivoYCrearAutomata(char* nombreArchivo, Lista* lista) {
+    FILE* archivo = fopen(nombreArchivo, "r");
+    if (archivo == NULL) {
+        perror("No se pudo abrir el archivo");
+        exit(EXIT_FAILURE);
     }
+
+    char linea[100];
+    char* token;
+    
+    // Leer la primera línea (nodos)
+    fgets(linea, 100, archivo);
+    int numNodos = contarElementos(strdup(linea));
+    lista->Cabecera = (struct Nodo*)malloc(numNodos * sizeof(struct Nodo));
+    lista->NumNodos = numNodos;
+    
+    // Leer nodos y crear nodos en la lista
+    fseek(archivo, 0, SEEK_SET);
+    fgets(linea, 100, archivo);
+    token = strtok(linea, ",");
+    int idx = 0;
+    char** nombresNodos = (char**)malloc(numNodos * sizeof(char*));
+    while (token) {
+        nombresNodos[idx] = strdup(token);
+        lista->Cabecera[idx] = *crearNodo(token, 1); // Inicialmente con un camino
+        idx++;
+        token = strtok(NULL, ",");
+    }
+    
+    // Leer la segunda línea (caminos)
+    fgets(linea, 100, archivo);
+    int numEntradas = contarElementos(strdup(linea));
+    for (int i = 0; i < lista->NumNodos; i++) {
+        struct Nodo* nodo = &lista->Cabecera[i];
+        nodo->numEntradas = numEntradas;
+        nodo->Caminos = (char***)realloc(nodo->Caminos, numEntradas * sizeof(char**));
+        nodo->CantidadDeCaminos = (int*)realloc(nodo->CantidadDeCaminos, numEntradas * sizeof(int));
+        for (int j = 0; j < numEntradas; j++) {
+            nodo->Caminos[j] = NULL;
+            nodo->CantidadDeCaminos[j] = 0;
+        }
+    }
+    
+    // Leer la tercera línea (estado inicial)
+    fgets(linea, 100, archivo);
+    token = strtok(linea, ",");
+    while (token) {
+        for (int i = 0; i < lista->NumNodos; i++) {
+            if (strcmp(lista->Cabecera[i].Nombre, token) == 0) {
+                lista->Cabecera[i].esInicio = 1;
+                break;
+            }
+        }
+        token = strtok(NULL, ",");
+    }
+
+    // Leer la cuarta línea (nodos finales)
+    fgets(linea, 100, archivo);
+    token = strtok(linea, ",");
+    while (token) {
+        for (int i = 0; i < lista->NumNodos; i++) {
+            if (strcmp(lista->Cabecera[i].Nombre, token) == 0) {
+                lista->Cabecera[i].esFinal = 1;
+                break;
+            }
+        }
+        token = strtok(NULL, ",");
+    }
+
+    // Leer los caminos
+    while (fgets(linea, 100, archivo)) {
+        char* origen = strtok(linea, ",");
+        char* entrada = strtok(NULL, ",");
+        char* destino = strtok(NULL, ",\n"); // Asegurarse de eliminar nueva línea
+        for (int i = 0; i < lista->NumNodos; i++) {
+            if (strcmp(lista->Cabecera[i].Nombre, origen) == 0) {
+                int entradaIdx = atoi(entrada);
+                agregarCamino(&lista->Cabecera[i], entradaIdx, destino);
+                break;
+            }
+        }
+    }
+
+    fclose(archivo);
+
+    // Generar combinaciones de nodos
+    char combinacion[100] = "";
+    generarCombinaciones(lista, nombresNodos, numNodos, 0, combinacion, 0, numEntradas);
+
+    // Liberar memoria
+    for (int i = 0; i < numNodos; i++) {
+        free(nombresNodos[i]);
+    }
+    free(nombresNodos);
 }
 
 int main() {
-    FILE *file;
-    char *filename = "ejemplo.txt";
-    char buffer[1024];
-    char ***lineas = (char ***)malloc(sizeof(char **) * 4);
-    int token_counts[4] = {0};
-
-    // Abrir el archivo para lectura
-    file = fopen(filename, "r");
-    if (file == NULL) {
-        perror("Error al abrir el archivo");
-        return 1;
-    }
-
-    // Leer y procesar las primeras 4 líneas del archivo
-    for (int i = 0; i < 4; i++) {
-        if (fgets(buffer, sizeof(buffer), file) != NULL) {
-            lineas[i] = procesarLinea(buffer, &token_counts[i]);
-        } else {
-            lineas[i] = NULL; // Manejar el caso donde hay menos de 4 líneas
-        }
-    }
-
-    // Generar combinaciones de la primera línea (lineas[0])
-    char **combinaciones;
-    int comb_count;
-    generarCombinaciones(lineas[0], token_counts[0], &combinaciones, &comb_count);
-
-    // Crear y llenar la matriz
-    int filas = comb_count + 1; // +1 para la cabecera
-    int columnas = token_counts[1] + 1; // +1 para la columna de combinaciones
-
-    char ***matriz = (char ***)malloc(filas * sizeof(char **));
-    for (int i = 0; i < filas; i++) {
-        matriz[i] = (char **)malloc(columnas * sizeof(char *));
-        for (int j = 0; j < columnas; j++) {
-            matriz[i][j] = NULL;
-        }
-    }
-
-    // Llenar la cabecera
-    matriz[0][0] = strdup("Q");
-    for (int j = 0; j < token_counts[1]; j++) {
-        matriz[0][j + 1] = strdup(lineas[1][j]);
-    }
-
-    // Llenar las combinaciones en la primera columna
-    for (int i = 0; i < comb_count; i++) {
-        matriz[i + 1][0] = strdup(combinaciones[i]);
-    }
-
-    // Leer las líneas restantes y llenar la matriz
-    while (fgets(buffer, sizeof(buffer), file) != NULL) {
-        int token_count;
-        char **tokens = procesarLinea(buffer, &token_count);
-        if (token_count == 3) {
-            int fila = encontrarIndiceCombinacion(combinaciones, comb_count, tokens[0]);
-            int columna = encontrarIndiceColumna(lineas[1], token_counts[1], tokens[1]);
-            if (fila != -1 && columna != -1) {
-                fila++; // Ajustar para la cabecera
-                columna++; // Ajustar para la cabecera
-                if (matriz[fila][columna] == NULL) {
-                    matriz[fila][columna] = strdup(tokens[2]);
-                } else {
-                    char *nuevo_valor = concatenarUnicos(matriz[fila][columna], tokens[2]);
-                    free(matriz[fila][columna]);
-                    matriz[fila][columna] = nuevo_valor;
-                }
-            }
-        }
-        for (int i = 0; i < token_count; i++) {
-            free(tokens[i]);
-        }
-        free(tokens);
-    }
-
-    // Rellenar los espacios de las combinaciones con la lógica especificada
-for (int i = 1; i < filas; i++) {
-    for (int j = 1; j < columnas; j++) {
-        if (matriz[i][j] == NULL) {
-            matriz[i][j] = strdup("");
-        }
-        char *comb = strdup(matriz[i][0]);
-        char *token = strtok(comb, ",");
-        while (token != NULL) {
-            int fila_token = encontrarIndiceCombinacion(combinaciones, comb_count, token);
-            fila_token++; // Ajustar para la cabecera
-            if (fila_token != i && matriz[fila_token][j] != NULL && strlen(matriz[fila_token][j]) > 0) {
-                char *nuevo_valor = concatenarUnicos(matriz[i][j], matriz[fila_token][j]);
-                free(matriz[i][j]);
-                matriz[i][j] = nuevo_valor;
-            }
-            token = strtok(NULL, ",");
-        }
-        free(comb);
-    }
-}
-
-
-
-    fclose(file);
-
-    // Abrir el archivo de salida para escritura
-    FILE *output = fopen("dfa.txt", "w");
-    if (output == NULL) {
-        perror("Error al abrir el archivo de salida");
-        return 1;
-    }
-
-    // Imprimir la matriz completa
-    fprintf(output, "Funcion de Estados completa:\n");
-    imprimirMatriz(output, matriz, filas, columnas, lineas[2][0], lineas[3], token_counts[3]);
-
-    // Imprimir la matriz inicial
-    fprintf(output, "\nFuncion de Estados Inicial:\n");
-    for (int i = 1; i < filas; i++) { // Empieza desde 1 para omitir la cabecera
-        if (contarTokens(matriz[i][0]) == 1) {
-            imprimirMatrizConMarcadores(output, matriz, i, i + 1, columnas, lineas[2][0], lineas[3], token_counts[3]);
-        }
-    }
-
-    // Imprimir la matriz con combinaciones
-    fprintf(output, "\nFuncion de Estados añadidos:\n");
-    for (int i = 1; i < filas; i++) { // Empieza desde 1 para omitir la cabecera
-        if (contarTokens(matriz[i][0]) > 1) {
-            imprimirMatrizConMarcadores(output, matriz, i, i + 1, columnas, lineas[2][0], lineas[3], token_counts[3]);
-        }
-    }
-
-    // Cerrar el archivo de salida
-    fclose(output);
-
-    // Liberar memoria
-    for (int i = 0; i < 4; i++) {
-        if (lineas[i] != NULL) {
-            for (int j = 0; j < token_counts[i]; j++) {
-                free(lineas[i][j]);
-            }
-            free(lineas[i]);
-        }
-    }
-    free(lineas);
-
-    for (int i = 0; i < comb_count; i++) {
-        free(combinaciones[i]);
-    }
-    free(combinaciones);
-
-    for (int i = 0; i < filas; i++) {
-        for (int j = 0; j < columnas; j++) {
-            if (matriz[i][j] != NULL) {
-                free(matriz[i][j]);
-            }
-        }
-        free(matriz[i]);
-    }
-    free(matriz);
-
+    Lista lista;
+    leerArchivoYCrearAutomata("ejemplo.txt", &lista);
+    imprimirLista(&lista);
     return 0;
 }
