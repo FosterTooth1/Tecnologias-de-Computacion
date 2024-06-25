@@ -19,7 +19,7 @@ typedef struct {
 } Lista;
 
 // Función para calcular la longitud de una cadena
-int mi_longitud(const char* cadena) {
+int tamano_cadena(const char* cadena) {
     int longitud = 0;
     // Recorre la cadena hasta encontrar el carácter nulo '\0'
     while (cadena[longitud] != '\0') {
@@ -29,7 +29,7 @@ int mi_longitud(const char* cadena) {
 }
 
 // Función para comparar dos cadenas
-int mi_comparar_cadenas(const char* cadena1, const char* cadena2) {
+int comparar_cadenas(const char* cadena1, const char* cadena2) {
     // Compara los caracteres uno por uno
     while (*cadena1 && (*cadena1 == *cadena2)) {
         cadena1++;
@@ -40,8 +40,8 @@ int mi_comparar_cadenas(const char* cadena1, const char* cadena2) {
 }
 
 // Función para duplicar una cadena
-char* mi_duplicar_cadena(const char* cadena) {
-    size_t longitud = mi_longitud(cadena); // Obtiene la longitud de la cadena
+char* duplicar_cadena(const char* cadena) {
+    size_t longitud = tamano_cadena(cadena); // Obtiene la longitud de la cadena
     char* duplicado = (char*)malloc((longitud + 1) * sizeof(char)); // Reserva memoria para la nueva cadena
     if (duplicado) {
         // Copia los caracteres de la cadena original a la nueva
@@ -53,7 +53,7 @@ char* mi_duplicar_cadena(const char* cadena) {
 }
 
 // Función para dividir una cadena en tokens
-char* mi_strtok(char* cadena, const char* delimitador) {
+char* tonekizar(char* cadena, const char* delimitador) {
     static char* ultima; // Almacena la posición de la última cadena procesada
     if (cadena) {
         ultima = cadena; // Inicializa con la nueva cadena
@@ -109,7 +109,7 @@ char* mi_strstr(const char* cadena, const char* subcadena) {
 // Función para crear un nuevo nodo
 struct Nodo* crearNodo(char* nombre, int numEntradas, char** entradas) {
     struct Nodo* nuevoNodo = (struct Nodo*)malloc(sizeof(struct Nodo)); // Reserva memoria para el nodo
-    nuevoNodo->Nombre = mi_duplicar_cadena(nombre); // Duplica el nombre del nodo
+    nuevoNodo->Nombre = duplicar_cadena(nombre); // Duplica el nombre del nodo
     nuevoNodo->Caminos = (char***)malloc(numEntradas * sizeof(char**)); // Reserva memoria para los caminos
     nuevoNodo->CantidadDeCaminos = (int*)calloc(numEntradas, sizeof(int)); // Inicializa la cantidad de caminos a cero
     nuevoNodo->esFinal = 0; // Inicializa como nodo no final
@@ -117,7 +117,7 @@ struct Nodo* crearNodo(char* nombre, int numEntradas, char** entradas) {
     nuevoNodo->numEntradas = numEntradas; // Establece el número de entradas
     nuevoNodo->Entradas = (char**)malloc(numEntradas * sizeof(char*)); // Reserva memoria para las entradas
     for (int i = 0; i < numEntradas; i++) {
-        nuevoNodo->Entradas[i] = mi_duplicar_cadena(entradas[i]); // Duplica cada entrada
+        nuevoNodo->Entradas[i] = duplicar_cadena(entradas[i]); // Duplica cada entrada
         nuevoNodo->Caminos[i] = NULL; // Inicializa cada camino como NULL
     }
     return nuevoNodo; // Retorna el nuevo nodo creado
@@ -128,7 +128,7 @@ void agregarCamino(struct Nodo* nodo, char* entrada, char* destino) {
     int indiceEntrada = -1;
     // Busca el índice de la entrada en el nodo
     for (int i = 0; i < nodo->numEntradas; i++) {
-        if (mi_comparar_cadenas(nodo->Entradas[i], entrada) == 0) {
+        if (comparar_cadenas(nodo->Entradas[i], entrada) == 0) {
             indiceEntrada = i;
             break;
         }
@@ -139,13 +139,13 @@ void agregarCamino(struct Nodo* nodo, char* entrada, char* destino) {
 
     // Verifica si el destino ya está en los caminos
     for (int i = 0; i < nodo->CantidadDeCaminos[indiceEntrada]; i++) {
-        if (mi_comparar_cadenas(nodo->Caminos[indiceEntrada][i], destino) == 0) {
+        if (comparar_cadenas(nodo->Caminos[indiceEntrada][i], destino) == 0) {
             return; // El destino ya está en el camino, no agregar
         }
     }
     // Reserva memoria para el nuevo camino y lo agrega
     nodo->Caminos[indiceEntrada] = (char**)realloc(nodo->Caminos[indiceEntrada], (nodo->CantidadDeCaminos[indiceEntrada] + 1) * sizeof(char*));
-    nodo->Caminos[indiceEntrada][nodo->CantidadDeCaminos[indiceEntrada]] = mi_duplicar_cadena(destino);
+    nodo->Caminos[indiceEntrada][nodo->CantidadDeCaminos[indiceEntrada]] = duplicar_cadena(destino);
     nodo->CantidadDeCaminos[indiceEntrada]++;
 }
 
@@ -172,11 +172,11 @@ void imprimirLista(Lista* lista) {
 // Función para contar el número de elementos separados por comas en una línea
 int contarElementos(char* linea) {
     int cuenta = 0;
-    char* token = mi_strtok(linea, ",");
+    char* token = tonekizar(linea, ",");
     // Cuenta los tokens en la línea
     while (token) {
         cuenta++;
-        token = mi_strtok(NULL, ",");
+        token = tonekizar(NULL, ",");
     }
     return cuenta; // Retorna la cantidad de elementos
 }
@@ -194,37 +194,37 @@ void leerArchivoYCrearAutomata(char* nombreArchivo, Lista* lista) {
     
     // Leer la primera línea (nodos)
     fgets(linea, 100, archivo);
-    int numNodos = contarElementos(mi_duplicar_cadena(linea)); // Cuenta el número de nodos
+    int numNodos = contarElementos(duplicar_cadena(linea)); // Cuenta el número de nodos
     lista->Cabecera = (struct Nodo*)malloc(numNodos * sizeof(struct Nodo)); // Reserva memoria para los nodos
     lista->NumNodos = numNodos;
     
     // Leer nodos y crear nodos en la lista
     fseek(archivo, 0, SEEK_SET); // Vuelve al inicio del archivo
     fgets(linea, 100, archivo);
-    token = mi_strtok(linea, ",");
+    token = tonekizar(linea, ",");
     int indice = 0;
     char** nombresNodos = (char**)malloc(numNodos * sizeof(char*));
     while (token) {
-        nombresNodos[indice] = mi_duplicar_cadena(token); // Duplica cada nombre de nodo
+        nombresNodos[indice] = duplicar_cadena(token); // Duplica cada nombre de nodo
         indice++;
-        token = mi_strtok(NULL, ",");
+        token = tonekizar(NULL, ",");
     }
 
     // Leer la segunda línea (entradas)
     fgets(linea, 100, archivo);
-    int numEntradas = contarElementos(mi_duplicar_cadena(linea)); // Cuenta el número de entradas
+    int numEntradas = contarElementos(duplicar_cadena(linea)); // Cuenta el número de entradas
     char** entradas = (char**)malloc(numEntradas * sizeof(char*));
     indice = 0;
-    token = mi_strtok(linea, ",");
+    token = tonekizar(linea, ",");
     while (token) {
-        entradas[indice] = mi_duplicar_cadena(token); // Duplica cada entrada
+        entradas[indice] = duplicar_cadena(token); // Duplica cada entrada
         indice++;
-        token = mi_strtok(NULL, ",");
+        token = tonekizar(NULL, ",");
     }
     
     // Agregar "e" como entrada adicional
     entradas = (char**)realloc(entradas, (numEntradas + 1) * sizeof(char*));
-    entradas[numEntradas] = mi_duplicar_cadena("e");
+    entradas[numEntradas] = duplicar_cadena("e");
     numEntradas++;
     
     for (int i = 0; i < lista->NumNodos; i++) {
@@ -233,37 +233,37 @@ void leerArchivoYCrearAutomata(char* nombreArchivo, Lista* lista) {
     
     // Leer la tercera línea (estado inicial)
     fgets(linea, 100, archivo);
-    token = mi_strtok(linea, ",");
+    token = tonekizar(linea, ",");
     while (token) {
         for (int i = 0; i < lista->NumNodos; i++) {
-            if (mi_comparar_cadenas(lista->Cabecera[i].Nombre, token) == 0) {
+            if (comparar_cadenas(lista->Cabecera[i].Nombre, token) == 0) {
                 lista->Cabecera[i].esInicio = 1; // Marca los nodos iniciales
                 break;
             }
         }
-        token = mi_strtok(NULL, ",");
+        token = tonekizar(NULL, ",");
     }
 
     // Leer la cuarta línea (nodos finales)
     fgets(linea, 100, archivo);
-    token = mi_strtok(linea, ",");
+    token = tonekizar(linea, ",");
     while (token) {
         for (int i = 0; i < lista->NumNodos; i++) {
-            if (mi_comparar_cadenas(lista->Cabecera[i].Nombre, token) == 0) {
+            if (comparar_cadenas(lista->Cabecera[i].Nombre, token) == 0) {
                 lista->Cabecera[i].esFinal = 1; // Marca los nodos finales
                 break;
             }
         }
-        token = mi_strtok(NULL, ",");
+        token = tonekizar(NULL, ",");
     }
 
     // Leer los caminos
     while (fgets(linea, 100, archivo)) {
-        char* origen = mi_strtok(linea, ",");
-        char* entrada = mi_strtok(NULL, ",");
-        char* destino = mi_strtok(NULL, ",\n"); // Asegurarse de eliminar nueva línea
+        char* origen = tonekizar(linea, ",");
+        char* entrada = tonekizar(NULL, ",");
+        char* destino = tonekizar(NULL, ",\n"); // Asegurarse de eliminar nueva línea
         for (int i = 0; i < lista->NumNodos; i++) {
-            if (mi_comparar_cadenas(lista->Cabecera[i].Nombre, origen) == 0) {
+            if (comparar_cadenas(lista->Cabecera[i].Nombre, origen) == 0) {
                 agregarCamino(&lista->Cabecera[i], entrada, destino); // Agrega los caminos al nodo correspondiente
                 break;
             }
@@ -287,7 +287,7 @@ void leerArchivoYCrearAutomata(char* nombreArchivo, Lista* lista) {
 struct Nodo* buscarNodo(Lista* lista, char* nombre) {
     // Recorre la lista buscando el nodo por su nombre
     for (int i = 0; i < lista->NumNodos; i++) {
-        if (mi_comparar_cadenas(lista->Cabecera[i].Nombre, nombre) == 0) {
+        if (comparar_cadenas(lista->Cabecera[i].Nombre, nombre) == 0) {
             return &lista->Cabecera[i]; // Retorna el nodo encontrado
         }
     }
@@ -296,7 +296,7 @@ struct Nodo* buscarNodo(Lista* lista, char* nombre) {
 
 // Función recursiva para verificar si una cadena pertenece al lenguaje
 void verificarCadena(Lista* lista, struct Nodo* nodo, char* cadena, int posicion, char* recorrido, int* encontrado) {
-    if (posicion == mi_longitud(cadena)) {
+    if (posicion == tamano_cadena(cadena)) {
         if (nodo->esFinal) {
             printf("Recorrido: %s\n", recorrido);
             printf("La cadena pertenece al lenguaje.\n");
@@ -305,7 +305,7 @@ void verificarCadena(Lista* lista, struct Nodo* nodo, char* cadena, int posicion
 
         // Verificar transiciones epsilon si la cadena ha terminado
         for (int i = 0; i < nodo->numEntradas; i++) {
-            if (mi_comparar_cadenas(nodo->Entradas[i], "e") == 0) {
+            if (comparar_cadenas(nodo->Entradas[i], "e") == 0) {
                 for (int j = 0; j < nodo->CantidadDeCaminos[i]; j++) {
                     char nuevoRecorrido[200];
                     snprintf(nuevoRecorrido, sizeof(nuevoRecorrido), "%s -> %s,e", recorrido, nodo->Caminos[i][j]);
@@ -319,10 +319,10 @@ void verificarCadena(Lista* lista, struct Nodo* nodo, char* cadena, int posicion
 
     char entrada[2] = {cadena[posicion], '\0'};
     for (int i = 0; i < nodo->numEntradas; i++) {
-        if (mi_comparar_cadenas(nodo->Entradas[i], entrada) == 0 || mi_comparar_cadenas(nodo->Entradas[i], "e") == 0) {
+        if (comparar_cadenas(nodo->Entradas[i], entrada) == 0 || comparar_cadenas(nodo->Entradas[i], "e") == 0) {
             for (int j = 0; j < nodo->CantidadDeCaminos[i]; j++) {
                 char nuevoRecorrido[200];
-                if (mi_comparar_cadenas(nodo->Entradas[i], "e") == 0) {
+                if (comparar_cadenas(nodo->Entradas[i], "e") == 0) {
                     snprintf(nuevoRecorrido, sizeof(nuevoRecorrido), "%s -> %s,e", recorrido, nodo->Caminos[i][j]);
                     struct Nodo* siguienteNodo = buscarNodo(lista, nodo->Caminos[i][j]);
                     verificarCadena(lista, siguienteNodo, cadena, posicion, nuevoRecorrido, encontrado);
@@ -362,7 +362,7 @@ void iniciarVerificacion(Lista* lista, char* cadena) {
 
 int main() {
     Lista lista;
-    leerArchivoYCrearAutomata("ejemplo5.txt", &lista);
+    leerArchivoYCrearAutomata("ejercicio2.txt", &lista);
     imprimirLista(&lista);
 
     char cadena[100];
