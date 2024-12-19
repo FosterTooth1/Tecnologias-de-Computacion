@@ -362,7 +362,7 @@ void iniciarVerificacion(Lista* lista, char* cadena) {
 
 int main() {
     Lista lista;
-    leerArchivoYCrearAutomata("ejercicio2.txt", &lista);
+    leerArchivoYCrearAutomata("muestra.txt", &lista);
     imprimirLista(&lista);
 
     char cadena[100];
